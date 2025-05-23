@@ -1,0 +1,9 @@
+/home/punosie/turtlebot3_ws/build/softbot_description/CMakeFiles/uninstall.dir
+/home/punosie/turtlebot3_ws/build/softbot_description/CMakeFiles/softbot_description_uninstall.dir
+/home/punosie/turtlebot3_ws/build/softbot_description/CMakeFiles/test.dir
+/home/punosie/turtlebot3_ws/build/softbot_description/CMakeFiles/edit_cache.dir
+/home/punosie/turtlebot3_ws/build/softbot_description/CMakeFiles/rebuild_cache.dir
+/home/punosie/turtlebot3_ws/build/softbot_description/CMakeFiles/list_install_components.dir
+/home/punosie/turtlebot3_ws/build/softbot_description/CMakeFiles/install.dir
+/home/punosie/turtlebot3_ws/build/softbot_description/CMakeFiles/install/local.dir
+/home/punosie/turtlebot3_ws/build/softbot_description/CMakeFiles/install/strip.dir

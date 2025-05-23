@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<robot name="softbot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:arg name="is_sim" default="true"></xacro:arg>
+
+    <!-- Include Gazebo Parameters -->
+    <xacro:include filename="$(find softbot_description)/urdf/softbot_gazebo.xacro" />
+    <!-- Include Gazebo Parameters -->
+    <xacro:include filename="$(find softbot_description)/urdf/softbot_ros2_control.xacro" />
+
+    <link name="base_footprint" />
+
+    <link name="base_link">
+    </link>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <origin xyz="0 0 0.10254" rpy="0 0 0" />
+    </joint>
+
+    <link name="lidar_link">
+    </link>
+
+    <joint name="lidar_joint" type="fixed">
+        <origin xyz="0.0013 0.00045 0.13058" rpy="0 0 3.14" />
+        <parent link="base_link" />
+        <child link="lidar_link" />
+        <axis xyz="0 0 0" />
+    </joint>
+
+    <link name="left_ultrasonic_link">
+    </link>
+
+    <joint name="left_ultrasonic_joint" type="fixed">
+        <origin xyz="0.24069 0.11545 0.069609" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="left_ultrasonic_link" />
+        <axis xyz="0 0 0" />
+    </joint>
+
+    <link name="right_ultrasonic_link">
+    </link>
+    <joint name="right_ultrasonic_joint" type="fixed">
+        <origin xyz="0.24069 -0.11455 0.069609" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="right_ultrasonic_link" />
+        <axis xyz="0 0 0" />
+    </joint>
+    <link name="bottom_camera_link">
+
+    </link>
+    <joint name="bottom_camera_joint" type="fixed">
+        <origin xyz="0.23686 0.00044797 0.056805" rpy="0 -0.5236 0" />
+        <parent link="base_link" />
+        <child link="bottom_camera_link" />
+        <axis xyz="0 0 0" />
+    </joint>
+
+    <link name="bottom_camera_link_optical"/>
+
+    <joint name="bottom_camera2camera_1" type="fixed">
+      <parent link="bottom_camera_link"/>
+      <child link="bottom_camera_link_optical"/>
+      <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
+      <axis xyz="0 0 0"/>
+    </joint>
+
+    <link name="top_camera_link">
+    </link>
+    <joint name="top_camera_joint" type="fixed">
+        <origin xyz="0.26999 0.00044797 0.87031" rpy="0 1.33154 0" />             <!-- <origin xyz="0.26999 0.00044797 0.87053" rpy="0 1.0472 0" /> -->
+        <parent link="base_link" />
+        <child link="top_camera_link" />
+        <axis xyz="0 0 0" />
+    </joint>
+
+    <link name="top_camera_link_optical"/>
+
+    <joint name="top_camera2camera_1" type="fixed">
+      <parent link="top_camera_link"/>
+      <child link="top_camera_link_optical"/>
+      <origin xyz="0 0 0" rpy="-1.2508 0 -1.5708"/>
+      <axis xyz="0 0 0"/>
+    </joint>
+
+    <link name="wheel_left_link">
+    </link>
+    <joint name="wheel_left_joint" type="continuous">
+        <origin xyz="0.0011 0.15001 0.01754" rpy="-1.57 0 0" />
+        <parent link="base_link" />
+        <child link="wheel_left_link" />
+        <axis xyz="0 0 1" />
+    </joint>
+
+    <link name="wheel_right_link">
+    </link>
+
+    <joint name="wheel_right_joint" type="continuous">
+        <origin xyz="0.0011 -0.15001 0.01754" rpy="1.57 0 0" />
+        <parent link="base_link" />
+        <child link="wheel_right_link" />
+        <axis xyz="0 0 -1" />
+    </joint>
+
+
+    <link name="imu_link">
+    </link>
+    <joint name="imu_joint" type="fixed">
+        <origin xyz="0.08957 0.00008 1.20158" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="imu_link" />
+        <axis xyz="0 0 0" />
+    </joint>
+
+</robot>

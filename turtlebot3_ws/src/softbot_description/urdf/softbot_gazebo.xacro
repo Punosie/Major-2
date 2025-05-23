@@ -1,0 +1,269 @@
+<?xml version="1.0"?>
+
+<robot name="softbot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:macro name="motor_actuator" params="link">
+        <transmission name="wheel_${link}_transmission" type="SimpleTransmission">
+            <type>transmission_interface/SimpleTransmission</type>
+            <actuator name="wheel_${link}_motor">
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+            <joint name="wheel_${link}_joint">
+                <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            </joint>
+        </transmission>
+    </xacro:macro>
+
+    <xacro:macro name="set_gazebo_friction" params="link mu1 mu2 kp kd caster:='default'">
+    <xacro:if value="${caster == 'caster_wheel'}">
+        <!-- If link is "caster_wheel", apply specific values -->
+        <gazebo reference="${link}">
+            <mu1 value="${mu1}" />
+            <mu2 value="${mu2}" />
+            <kp value="${kp}" />
+            <kd value="${kd}" />
+            <minDepth>0.001</minDepth>
+            <maxVel>1.0</maxVel>
+        </gazebo>
+    </xacro:if>
+    
+    <xacro:unless value="${caster == 'caster_wheel'}">
+        <!-- If link is not "caster_wheel", apply general values -->
+        <gazebo reference="${link}">
+            <mu1 value="${mu1}" />
+            <mu2 value="${mu2}" />
+            <kp value="${kp}" />
+            <kd value="${kd}" />
+            <minDepth>0.001</minDepth>
+        </gazebo>
+    </xacro:unless>
+</xacro:macro>
+
+    <!-- Motor Actuator For Gazebo -->
+    <xacro:motor_actuator link="right" />
+    <xacro:motor_actuator link="left" />
+
+
+    <!-- Friction settings for the wheels -->
+    <xacro:set_gazebo_friction link="wheel_left_link" mu1="1000000000000" mu2="1000000000000" kp="1000000" kd="50" />
+    <xacro:set_gazebo_friction link="wheel_right_link" mu1="1000000000000" mu2="1000000000000" kp="1000000" kd="50" />
+
+    <!-- Friction settings for the castor base links -->
+    <xacro:set_gazebo_friction link="castor_back_left_base_link" mu1="0.1" mu2="0.1" kp="1000000" kd="100" />
+    <xacro:set_gazebo_friction link="castor_back_right_base_link" mu1="0.1" mu2="0.1" kp="1000000" kd="100" />
+    <xacro:set_gazebo_friction link="castor_front_left_base_link" mu1="0.1" mu2="0.1" kp="1000000" kd="100" />
+    <xacro:set_gazebo_friction link="castor_front_right_base_link" mu1="0.1" mu2="0.1" kp="1000000" kd="100" />
+
+    <!-- Friction settings for the castor wheel links -->
+    <xacro:set_gazebo_friction link="castor_back_left_wheel_link" mu1="0.1" mu2="0.1" kp="1000000" kd="50" caster="caster_wheel"/>
+    <xacro:set_gazebo_friction link="castor_back_right_wheel_link" mu1="0.1" mu2="0.1" kp="1000000" kd="50" caster="caster_wheel"/>
+    <xacro:set_gazebo_friction link="castor_front_left_wheel_link" mu1="0.1" mu2="0.1" kp="1000000" kd="50" caster="caster_wheel"/>
+    <xacro:set_gazebo_friction link="castor_front_right_wheel_link" mu1="0.1" mu2="0.1" kp="1000000" kd="50" caster="caster_wheel"/>
+
+    <!-- Friction settings for the suspension links -->
+    <xacro:set_gazebo_friction link="suspension_right_link" mu1="100000" mu2="100000" kp="100000000" kd="50" caster="caster_wheel"/>
+    <xacro:set_gazebo_friction link="suspension_left_link" mu1="100000" mu2="100000" kp="100000000" kd="50" caster="caster_wheel"/>
+
+
+
+    <!-- ROS 2 Control -->
+    <gazebo>
+        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+            <robot_param>robot_description</robot_param>
+            <robot_param_node>robot_state_publisher</robot_param_node>
+            <parameters>$(find softbot_controller)/config/softbot_controllers.yaml</parameters>
+            <ros>
+                <remapping>/softbot_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+            </ros>
+        </plugin>
+    </gazebo>
+
+    <!-- 2D Laser Sensor -->
+    <gazebo reference="lidar_link">
+        <sensor name="lidar" type="ray">
+            <always_on>true</always_on>
+            <visualize>false</visualize>
+            <update_rate>10</update_rate>
+            <ray>
+                <scan>
+                    <horizontal>
+                        <samples>720</samples>
+                        <resolution>1.00000</resolution>
+                        <min_angle>0.000000</min_angle>
+                        <max_angle>6.280000</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.120000</min>
+                    <max>25.0</max>
+                    <resolution>0.02</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.01</stddev>                               
+                </noise>
+            </ray>
+            <plugin name="scan" filename="libgazebo_ros_ray_sensor.so">
+                <ros>
+                    <remapping>~/out:=scan</remapping>
+                </ros>
+                <output_type>sensor_msgs/LaserScan</output_type>
+                <frame_name>lidar_link</frame_name>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    <!-- IMU -->
+    <gazebo reference="imu_link">
+        <sensor name="imu" type="imu">
+            <always_on>true</always_on>
+            <update_rate>20</update_rate>
+            <imu>
+                <angular_velocity>
+                <x>
+                    <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>2e-4</stddev>
+                    </noise>
+                </x>
+                <y>
+                    <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>2e-4</stddev>
+                    </noise>
+                </y>
+                <z>
+                    <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>2e-4</stddev>
+                    </noise>
+                </z>
+                </angular_velocity>
+                <linear_acceleration>
+                <x>
+                    <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>1.7e-2</stddev>
+                    </noise>
+                </x>
+                <y>
+                    <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>1.7e-2</stddev>
+                    </noise>
+                </y>
+                <z>
+                    <noise type="gaussian">
+                    <mean>0.0</mean>
+                    <stddev>1.7e-2</stddev>
+                    </noise>
+                </z>
+                </linear_acceleration>
+            </imu>
+            <plugin name="imu" filename="libgazebo_ros_imu_sensor.so" />
+        </sensor>
+    </gazebo>
+
+
+    <!-- *********************** ULTRASONIC SENSOR ************************  -->
+
+    <xacro:macro name="ultrasonic_gazebo_plugin" params="link_side">
+        <gazebo reference="${link_side}_ultrasonic_link">
+            <sensor name="ultrasonic_${link_side}" type="ray">
+                <always_on>true</always_on>
+                <visualize>true</visualize>
+                <pose>0 0 0 0 0 0</pose>
+                <update_rate>10</update_rate>
+                <ray>
+                    <scan>
+                        <horizontal>
+                            <samples>10</samples>
+                            <resolution>1.000000</resolution>
+                            <min_angle>-0.12</min_angle>
+                            <max_angle>0.12</max_angle>
+                        </horizontal>
+                        <vertical>
+                            <samples>5</samples>
+                            <resolution>1.000000</resolution>
+                            <min_angle>-0.01</min_angle>
+                            <max_angle>0.01</max_angle>
+                        </vertical>
+                    </scan>
+                    <range>
+                        <min>0.02</min>
+                        <max>3.0</max>
+                        <resolution>0.01</resolution>
+                    </range>
+                    <noise>
+                        <type>gaussian</type>
+                        <mean>0.0</mean>
+                        <stddev>0.01</stddev>
+                    </noise>
+                </ray>
+                <plugin name="ultrasonic_sensor_${link_side}" filename="libgazebo_ros_ray_sensor.so">
+                    <ros>
+                        <remapping>~/out:=${link_side}_ultrasonic</remapping>
+                    </ros>
+                    <output_type>sensor_msgs/Range</output_type>
+                    <min_intensity>100.0</min_intensity>
+                    <radiation_type>ultrasound</radiation_type>
+                    <frame_name>${link_side}_ultrasonic_link</frame_name>
+                </plugin>
+            </sensor>  
+        </gazebo>
+    </xacro:macro>
+
+
+    <!-- <xacro:ultrasonic_gazebo_plugin link_side="left" />
+    <xacro:ultrasonic_gazebo_plugin link_side="right" /> -->
+
+    <xacro:macro name="depth_camera_gazebo_plugin" params="link">
+        <gazebo reference="${link}_camera_link">
+            <sensor name="camera_${link}" type="depth">
+                <pose> 0 0 0 0 0 0</pose>
+                <visualize>true</visualize>
+                <update_rate>20.0</update_rate>
+                <camera name="depth_camera_${link}">
+                    <horizontal_fov>1.047198</horizontal_fov>
+                    <image>
+                    <width>640</width>
+                    <height>480</height>
+                    <format>R8G8B8</format>
+                    </image>
+                    <clip>
+                    <near>0.05</near>
+                    <far>30</far>
+                    </clip>
+                </camera>
+                <plugin name="depth_camera_${link}" filename="libgazebo_ros_camera.so">
+                    <baseline>0.2</baseline>
+                    <alwaysOn>true</alwaysOn>
+                    <updateRate>0.0</updateRate>
+                    <frame_name>${link}_camera_link</frame_name>
+                    <pointCloudCutoff>0.1</pointCloudCutoff>
+                    <pointCloudCutoffMax>10.0</pointCloudCutoffMax>
+                    <distortionK1>0</distortionK1>
+                    <distortionK2>0</distortionK2>
+                    <distortionK3>0</distortionK3>
+                    <distortionT1>0</distortionT1>
+                    <distortionT2>0</distortionT2>
+                    <CxPrime>0</CxPrime>
+                    <Cx>0</Cx>
+                    <Cy>0</Cy>
+                    <focalLength>0</focalLength>
+                    <hackBaseline>0</hackBaseline>
+                </plugin>
+            </sensor>
+        </gazebo>
+    </xacro:macro>
+
+    <!-- depth_camera_gazebo_plugin -->
+
+    <!-- <xacro:depth_camera_gazebo_plugin link="bottom" />
+    <xacro:depth_camera_gazebo_plugin link="top" /> -->
+
+    
+
+
+</robot>

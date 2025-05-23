@@ -1,0 +1,8 @@
+source;share/softbot_description/hook/cmake_prefix_path.ps1
+source;share/softbot_description/hook/cmake_prefix_path.dsv
+source;share/softbot_description/hook/cmake_prefix_path.sh
+source;share/softbot_description/local_setup.bash
+source;share/softbot_description/local_setup.dsv
+source;share/softbot_description/local_setup.ps1
+source;share/softbot_description/local_setup.sh
+source;share/softbot_description/local_setup.zsh
